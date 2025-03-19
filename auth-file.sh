@@ -47,3 +47,5 @@ else
     echo "Error: No se pudo crear el archivo $AUTH_FILE."
     exit 1
 fi
+
+wget https://raw.githubusercontent.com/ETH973/AuthFile/main/regv2 && mv /root/regv2 /usr/bin/ && chmod +x /usr/bin/regv2
