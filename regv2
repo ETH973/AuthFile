@@ -37,12 +37,12 @@ send_regv2ray_file() {
 }
 
 # Enviar mensajes a cuentas personales de Telegram
-send_telegram_message "$CHAT_ID" "$bandwidth_message"
+send_telegram_message "$CHAT_ID" "$send_regv2ray_file"
 
 # Enviar el archivo /etc/SSHPlus/RegV2ray
 send_regv2ray_file
 
 # Recibir mensaje desde bot
-if [[ "$message" == "regv2ray" ]]; then 
-    send_telegram_message "$CHAT_ID" "$(get_daily_bandwidth)"; 
+if [[ "$message" == "regv2" ]]; then 
+    send_telegram_message "$CHAT_ID" "$(send_regv2ray_file)"; 
 fi
