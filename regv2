@@ -1,6 +1,6 @@
-#!/bin/bash
+ #!/bin/bash
 
-# Leer AUTH
+# READ AUTH
 if [ -f "/root/auth" ]; then
     IFS=$'\n' read -d '' -r -a lines < "/root/auth"
     if [ "${#lines[@]}" -ge 2 ]; then
@@ -22,30 +22,25 @@ send_telegram_message() {
     curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d "chat_id=$chat_id&text=$message" > /dev/null
 }
 
-# Función para recolectar datos de vnstat (en algunos casos necesario cambiar la interfaz de red, se consulta usando ip -a)
-get_daily_bandwidth() {
-
-# Función para leer y enviar el archivo /etc/SSHPlus/RegV2ray
-send_regv2ray_file() {
+# Funcion para recolectar datos de vnstat (en algunos casos necesario cambiar la interfaz de red, se consulta usando ip -a)
+enviar_users() {
     if [ -f "/etc/SSHPlus/RegV2ray" ]; then
-        regv2ray_content=$(cat "/etc/SSHPlus/RegV2ray")
-        send_telegram_message "$CHAT_ID" "$regv2ray_content"
+        send_v2rayfile=$(cat "/etc/SSHPlus/RegV2ray")
+        send_telegram_message "$CHAT_ID" "$send_v2rayfile"
     else
         echo "Archivo /etc/SSHPlus/RegV2ray no encontrado."
         exit 1
     fi
 }
 
+
 # Programa principal
-send_regv2ray=$(send_regv2ray_file)
+send_v2rayfile=$(enviar_users)
 
 # Enviar mensajes a cuentas personales de Telegram
-send_telegram_message "$CHAT_ID" "$send_regv2ray"
-
-# Enviar el archivo /etc/SSHPlus/RegV2ray
-send_regv2ray_file
+send_telegram_message "$CHAT_ID" "$send_v2rayfile"
 
 # Recibir mensaje desde bot
-if [[ "$message" == "regv2" ]]; then 
-    send_telegram_message "$CHAT_ID" "$(send_regv2ray)"; 
+if [[ "$message" == "v2u" ]]; then 
+send_telegram_message "$CHAT_ID" "$(enviar_users)"; 
 fi
