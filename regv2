@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Ruta del archivo auth
+AUTH_FILE="/root/auth"
+
+# Verificar si el archivo auth ya existe
+if [ -f "$AUTH_FILE" ]; then
+    echo "El archivo $AUTH_FILE ya existe."
+    echo "¿Deseas sobrescribirlo? (s/n)"
+    read respuesta
+    if [[ "$respuesta" != "s" && "$respuesta" != "S" ]]; then
+        echo "Operación cancelada."
+        exit 1
+    fi
+fi
+
+# Solicitar el Token de Telegram
+echo "Por favor, ingresa el Token de tu bot de Telegram:"
+read -r BOT_TOKEN
+
+# Validar que el Token no esté vacío
+if [ -z "$BOT_TOKEN" ]; then
+    echo "Error: El Token no puede estar vacío."
+    exit 1
+fi
+
+# Solicitar el ID de chat de Telegram
+echo "Por favor, ingresa tu ID de chat de Telegram:"
+read -r CHAT_ID
+
+# Validar que el ID de chat no esté vacío
+if [ -z "$CHAT_ID" ]; then
+    echo "Error: El ID de chat no puede estar vacío."
+    exit 1
+fi
+
+# Guardar el Token y el ID en el archivo auth
+echo "$BOT_TOKEN" > "$AUTH_FILE"
+echo "$CHAT_ID" >> "$AUTH_FILE"
+
+# Verificar que el archivo se haya creado correctamente
+if [ -f "$AUTH_FILE" ]; then
+    echo "El archivo $AUTH_FILE se ha creado correctamente."
+    echo "Contenido del archivo:"
+    cat "$AUTH_FILE"
+else
+    echo "Error: No se pudo crear el archivo $AUTH_FILE."
+    exit 1
+fi
+
+# READ AUTH
+if [ -f "/root/auth" ]; then
+    IFS=$'\n' read -d '' -r -a lines < "/root/auth"
+    if [ "${#lines[@]}" -ge 2 ]; then
+        BOT_TOKEN="${lines[0]}"
+        CHAT_ID="${lines[1]}"
+    else
+        echo "El archivo de autenticación debe tener al menos 2 líneas (su token y su ID de chat)."
+        exit 1
+    fi
+else
+    echo "Archivo de autenticación no encontrado."
+    exit 1
+fi
+
+# Función para enviar mensajes a los bots de Telegram
+send_telegram_message() {
+    chat_id="$1"
+    message="$2"
+    curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d "chat_id=$chat_id&text=$message" > /dev/null
+}
+
+# Función para recolectar datos de vnstat (en algunos casos necesario cambiar la interfaz de red, se consulta usando ip -a)
+get_daily_bandwidth() {
+
+# Función para leer y enviar el archivo /etc/SSHPlus/RegV2ray
+send_regv2ray_file() {
+    if [ -f "/etc/SSHPlus/RegV2ray" ]; then
+        regv2ray_content=$(cat "/etc/SSHPlus/RegV2ray")
+        send_telegram_message "$CHAT_ID" "$regv2ray_content"
+    else
+        echo "Archivo /etc/SSHPlus/RegV2ray no encontrado."
+        exit 1
+    fi
+}
+
+# Enviar mensajes a cuentas personales de Telegram
+send_telegram_message "$CHAT_ID" "$bandwidth_message"
+
+# Enviar el archivo /etc/SSHPlus/RegV2ray
+send_regv2ray_file
+
+# Recibir mensaje desde bot
+if [[ "$message" == "regv2ray" ]]; then 
+    send_telegram_message "$CHAT_ID" "$(get_daily_bandwidth)"; 
+fi
